@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi My</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <style>
+        /* --- GIỮ NGUYÊN CSS CŨ --- */
+        body {
+            margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden;
+            background: linear-gradient(180deg, #ffdde1 0%, #ee9ca7 100%);
+            font-family: 'Mali', cursive; position: relative;
+        }
+        
+        /* --- THÊM CSS MỚI (MẶT TRỜI & NẮNG) --- */
+        .morning-glow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(225deg, rgba(255, 245, 157, 0.4) 0%, rgba(255, 255, 255, 0) 50%);
+            z-index: 3; pointer-events: none;
+        }
+        .cute-sun {
+            position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; z-index: 2;
+            animation: sunFloat 6s ease-in-out infinite, sunRotate 20s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+        }
+        @keyframes sunFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+        @keyframes sunRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* ------------------------------------- */
+
+        .sky-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .cloud { position: absolute; opacity: 0.8; animation: moveCloud linear infinite; }
+        .cloud img { width: 120px; }
+        @keyframes moveCloud { 0% { transform: translateX(-200px); } 100% { transform: translateX(100vw); } }
+        .nyan-cat { position: absolute; top: 50%; left: -200px; z-index: 5; width: 100px; animation: runCat 40s linear infinite; }
+        @keyframes runCat { 0% { left: -200px; } 100% { left: 100vw; } }
+        .heart-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; font-size: 80px; color: #ff4d6d; cursor: pointer; animation: heartBeat 1.5s infinite; text-shadow: 0 5px 15px rgba(255, 77, 109, 0.4); transition: opacity 0.5s; }
+        @keyframes heartBeat { 0% { transform: translate(-50%, -50%) scale(1); } 15% { transform: translate(-50%, -50%) scale(1.1); } 30% { transform: translate(-50%, -50%) scale(1); } 45% { transform: translate(-50%, -50%) scale(1.1); } 60% { transform: translate(-50%, -50%) scale(1); } }
+        .dialogue-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.95); padding: 20px 30px; border-radius: 20px; border: 3px solid #ffb7b2; color: #ff6b81; font-size: 20px; font-weight: bold; width: max-content; max-width: 80%; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); opacity: 0; visibility: hidden; transition: all 0.5s ease; z-index: 50; }
+        .dialogue-box.show { opacity: 1; visibility: visible; top: 50%; }
+        .flying-envelope { position: absolute; font-size: 30px; z-index: 40; pointer-events: none; }
+        .letter-container { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5); z-index: 200; width: 90%; max-width: 500px; background: #fff0f3; border-radius: 15px; box-shadow: 0 0 30px rgba(255, 105, 180, 0.5); padding: 25px; flex-direction: column; align-items: center; border: 3px dashed #ffb7b2; opacity: 0; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .letter-container.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .date-label { font-family: 'Pacifico', cursive; color: #ff4d6d; font-size: 22px; margin-bottom: 20px; }
+        .letter-content { width: 100%; height: 200px; border: none; background: transparent; font-family: 'Mali', cursive; font-size: 18px; color: #555; line-height: 1.6; outline: none; resize: none; background-image: linear-gradient(transparent, transparent 29px, #ffccd5 30px); background-size: 100% 30px; }
+        .finish-btn { margin-top: 20px; background: #ff8fa3; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-family: 'Mali', cursive; font-size: 18px; cursor: pointer; box-shadow: 0 5px 10px rgba(255, 143, 163, 0.4); transition: background 0.3s; }
+        .finish-btn:hover { background: #ff4d6d; }
+        .finish-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .goodbye-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe5ec; z-index: 999; flex-direction: column; justify-content: center; align-items: center; }
+        .goodbye-text { font-family: 'Pacifico', cursive; font-size: 60px; color: #ff4d6d; }
+    </style>
+</head>
+<body>
+    <audio id="bg-music" loop><source src="inlove.mp3" type="audio/mpeg"></audio>
+    <audio id="type-sound"><source src="type.mp3" type="audio/mpeg"></audio>
+    
+    <div class="morning-glow"></div>
+    <img src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" class="cute-sun" alt="Sun">
+    <div class="sky-container">
+        <div class="cloud" style="top: 15%; animation-duration: 50s;"><img src="https://cdn-icons-png.flaticon.com/512/414/414927.png"></div>
+        <div class="cloud" style="top: 65%; animation-duration: 40s; left: 50%;"><img src="https://cdn-icons-png.flaticon.com/512/414/414927.png"></div>
+    </div>
+
+    <img src="https://media.tenor.com/2sZ0v5jC5h0AAAAi/nyan-cat-rainbow.gif" class="nyan-cat" alt="cat">
+    <div class="heart-btn" id="heartBtn">❤️</div>
+    <div id="dialogueBox" class="dialogue-box"></div>
+
+    <div class="letter-container" id="letterBox">
+        <div class="date-label" id="currentDate"></div>
+        <textarea class="letter-content" id="letterInput" placeholder="Hãy viết tâm sự của em vào đây..."></textarea>
+        <button class="finish-btn" id="sendBtn" onclick="sendEmail()">Gửi cho anh ❤️</button>
+    </div>
+
+    <div class="goodbye-screen" id="goodbyeScreen">
+        <div class="goodbye-text">Goodbye!</div>
+        <p style="color: #ff8fa3;">Thư của em đã được gửi tới anh.</p>
+    </div>
+
+    <script>
+        // --- GIỮ NGUYÊN CODE CŨ CỦA BẠN ---
+        const PUBLIC_KEY = "evaOeDQQxQ9LLBHbZ";
+        const SERVICE_ID = "service_a18yiyn";
+        const TEMPLATE_ID = "template_5vrf9nz";
+
+        (function(){ emailjs.init(PUBLIC_KEY); })();
+
+        const questions = ["Hé lôô 👋","Ngày hôm nay của em thế nào? 🌤️", "Có điều gì làm em vui hay buồn không? 🤔", "Dù thế nào thì anh vẫn luôn ở đây lắng nghe em nè ❤️", "Hãy kể cho anh nhé! 💌"];
+        const autoMessage = "Dù ngày hôm nay của em có vui hay buồn thì vẫn hãy luôn nở nụ cười nhé vì em xinh nhất khi cười đó ^^";
+        
+        const heartBtn = document.getElementById('heartBtn');
+        const dialogueBox = document.getElementById('dialogueBox');
+        const letterBox = document.getElementById('letterBox');
+        const letterInput = document.getElementById('letterInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const bgMusic = document.getElementById('bg-music');
+        const typeSound = document.getElementById('type-sound');
+
+        let currentQ = 0; let idleTimer = null; let hasTyped = false; let isAutoTyping = false;
+
+        heartBtn.addEventListener('click', () => {
+            bgMusic.volume = 0.5; bgMusic.play().catch(()=>{});
+            heartBtn.style.opacity = '0'; setTimeout(() => { heartBtn.style.display = 'none'; }, 500);
+            showQuestion();
+        });
+
+        function showQuestion() {
+            if (currentQ < questions.length) {
+                dialogueBox.innerText = questions[currentQ]; dialogueBox.classList.add('show');
+                setTimeout(() => { dialogueBox.classList.remove('show'); setTimeout(() => { currentQ++; showQuestion(); }, 500); }, 3000);
+            } else { createExplosion(); }
+        }
+
+        function createExplosion() {
+            for(let i=0; i<30; i++) {
+                const env = document.createElement('div'); env.className = 'flying-envelope'; env.innerHTML = '💌'; env.style.left = '50%'; env.style.top = '50%'; document.body.appendChild(env);
+                const angle = Math.random() * Math.PI * 2; const dist = 100 + Math.random() * 200; const x = Math.cos(angle) * dist; const y = Math.sin(angle) * dist;
+                env.animate([{transform:'translate(-50%,-50%) scale(0.5)',opacity:1}, {transform:`translate(calc(-50% + ${x}px),calc(-50% + ${y}px)) scale(1.2) rotate(${Math.random()*360}deg)`,opacity:0}], {duration:1500,easing:'ease-out',fill:'forwards'}).onfinish = () => env.remove();
+            }
+            setTimeout(showLetterBox, 800);
+        }
+
+        function showLetterBox() {
+            letterBox.style.display = 'flex';
+            const d = new Date(); document.getElementById('currentDate').innerText = `Ngày ${d.getDate()} tháng ${d.getMonth()+1} năm ${d.getFullYear()}`;
+            setTimeout(() => { letterBox.classList.add('active'); }, 50);
+            startIdleTimer();
+        }
+
+        letterInput.addEventListener('input', () => { hasTyped = true; if(idleTimer) clearTimeout(idleTimer); typeSound.currentTime = 0; typeSound.volume = 0.5; typeSound.play().catch(()=>{}); });
+        function startIdleTimer() { idleTimer = setTimeout(() => { if(!hasTyped && !isAutoTyping) autoTypeContent(); }, 10000); }
+        function autoTypeContent() {
+            isAutoTyping = true; let i = 0; letterInput.value = "";
+            function typing() { if(i < autoMessage.length) { letterInput.value += autoMessage.charAt(i); i++; let s = typeSound.cloneNode(); s.volume = 0.3; s.play().catch(()=>{}); setTimeout(typing, 100); } else { hasTyped = true; } }
+            typing();
+        }
+
+        function sendEmail() {
+            const content = letterInput.value;
+            if(!content.trim()) return alert("Em chưa viết gì nè!");
+            sendBtn.innerText = "Đang gửi..."; sendBtn.disabled = true;
+            const templateParams = { message: content, date_time: new Date().toLocaleString('vi-VN') };
+
+            emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    letterBox.classList.remove('active');
+                    setTimeout(() => {
+                        letterBox.style.display = 'none';
+                        document.getElementById('goodbyeScreen').style.display = 'flex';
+                        bgMusic.pause();
+                    }, 800);
+                }, function(error) {
+                    console.log('FAILED...', error);
+                    alert('Có lỗi khi gửi thư :( Em hãy chụp màn hình và gửi cho anh nhé!');
+                    sendBtn.innerText = "Gửi lại"; sendBtn.disabled = false;
+                    const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `Thu_Loi_Mang.txt`; a.click();
+                });
+        }
+    </script>
+</body>
+</html>
