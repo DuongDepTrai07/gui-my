@@ -65,15 +65,40 @@
         <p style="color: #ff8fa3;">Thư của em đã được gửi tới anh.</p>
     </div>
 
-    <div id="secretCounter" style="display: none; position: absolute; bottom: 10px; width: 100%; text-align: center; z-index: 999; pointer-events: none;">
+    <div id="counterContainer" style="position: absolute; bottom: 10px; width: 100%; text-align: center; z-index: 999; pointer-events: none; display: none;">
         <span style="font-family: 'Mali', cursive; color: #ff6b81; font-size: 14px; margin-right: 5px;">Số lần ghé thăm: </span>
-        <a href="https://www.hitwebcounter.com/" target="_blank" style="pointer-events: auto;">
-            <img src="https://hitwebcounter.com/counter/counter.php?page=21475210&style=0004&nbdigits=5&type=page&initCount=0" title="Free Tools" Alt="Free Tools" border="0" />
-        </a>
-    </div>
+        </div>
 
     <script>
-        // --- GIỮ NGUYÊN JS CŨ ---
+        // --- MÃ BỘ ĐẾM CỦA BẠN (LƯU VÀO BIẾN) ---
+        // Chúng ta lưu nó dưới dạng chuỗi chữ, chưa cho chạy ngay
+        const myCounterHTML = `<a href="https://www.hitwebcounter.com/" target="_blank" style="pointer-events: auto;">
+            <img src="https://hitwebcounter.com/counter/counter.php?page=21475210&style=0004&nbdigits=5&type=page&initCount=0" title="Free Tools" Alt="Free Tools" border="0" />
+        </a>`;
+
+        // --- XỬ LÝ LOGIC HIỂN THỊ (QUAN TRỌNG) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const counterDiv = document.getElementById('counterContainer');
+
+        if (urlParams.has('me')) {
+            // TRƯỜNG HỢP 1: CÓ DUÔI "?me=true"
+            // -> KHÔNG làm gì cả. Không chèn mã đếm vào.
+            // -> Kết quả: Không tải ảnh -> Không đếm.
+            console.log("Chế độ chủ nhân: Đã chặn bộ đếm!");
+        } 
+        else if (urlParams.has('admin')) {
+            // TRƯỜNG HỢP 2: CÓ DUÔI "?admin=true"
+            // -> Chèn mã đếm vào VÀ Hiện lên cho xem
+            counterDiv.innerHTML += myCounterHTML;
+            counterDiv.style.display = 'block'; 
+        } 
+        else {
+            // TRƯỜNG HỢP 3: NGƯỜI DÙNG BÌNH THƯỜNG (Cô ấy)
+            // -> Chèn mã đếm vào (để nó đếm +1) NHƯNG VẪN GIỮ ẨN (display: none)
+            counterDiv.innerHTML += myCounterHTML;
+        }
+
+        // --- GIỮ NGUYÊN JS CŨ BÊN DƯỚI ---
         const PUBLIC_KEY = "evaOeDQQxQ9LLBHbZ";
         const SERVICE_ID = "service_a18yiyn";
         const TEMPLATE_ID = "template_5vrf9nz";
@@ -92,13 +117,6 @@
         const typeSound = document.getElementById('type-sound');
 
         let currentQ = 0; let idleTimer = null; let hasTyped = false; let isAutoTyping = false;
-
-        // --- CHECK CHẾ ĐỘ ADMIN (MỚI THÊM) ---
-        // Đoạn code này sẽ kiểm tra xem trên thanh địa chỉ có chữ "?admin=true" không
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('admin')) {
-            document.getElementById('secretCounter').style.display = 'block'; // Hiện bộ đếm
-        }
 
         heartBtn.addEventListener('click', () => {
             bgMusic.volume = 0.5; bgMusic.play().catch(()=>{});
