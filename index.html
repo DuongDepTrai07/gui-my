@@ -8,27 +8,13 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- GIỮ NGUYÊN CSS CŨ --- */
-        body {
-            margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden;
-            background: linear-gradient(180deg, #ffdde1 0%, #ee9ca7 100%);
-            font-family: 'Mali', cursive; position: relative;
-        }
+        /* --- GIỮ NGUYÊN TOÀN BỘ CSS CŨ --- */
+        body { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; background: linear-gradient(180deg, #ffdde1 0%, #ee9ca7 100%); font-family: 'Mali', cursive; position: relative; }
         
-        /* --- THÊM CSS MỚI (MẶT TRỜI & NẮNG) --- */
-        .morning-glow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(225deg, rgba(255, 245, 157, 0.4) 0%, rgba(255, 255, 255, 0) 50%);
-            z-index: 3; pointer-events: none;
-        }
-        .cute-sun {
-            position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; z-index: 2;
-            animation: sunFloat 6s ease-in-out infinite, sunRotate 20s linear infinite;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
-        }
+        .morning-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(225deg, rgba(255, 245, 157, 0.4) 0%, rgba(255, 255, 255, 0) 50%); z-index: 3; pointer-events: none; }
+        .cute-sun { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; z-index: 2; animation: sunFloat 6s ease-in-out infinite, sunRotate 20s linear infinite; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)); }
         @keyframes sunFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
         @keyframes sunRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* ------------------------------------- */
 
         .sky-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         .cloud { position: absolute; opacity: 0.8; animation: moveCloud linear infinite; }
@@ -55,9 +41,10 @@
 <body>
     <audio id="bg-music" loop><source src="inlove.mp3" type="audio/mpeg"></audio>
     <audio id="type-sound"><source src="type.mp3" type="audio/mpeg"></audio>
-    
+
     <div class="morning-glow"></div>
     <img src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" class="cute-sun" alt="Sun">
+
     <div class="sky-container">
         <div class="cloud" style="top: 15%; animation-duration: 50s;"><img src="https://cdn-icons-png.flaticon.com/512/414/414927.png"></div>
         <div class="cloud" style="top: 65%; animation-duration: 40s; left: 50%;"><img src="https://cdn-icons-png.flaticon.com/512/414/414927.png"></div>
@@ -78,8 +65,15 @@
         <p style="color: #ff8fa3;">Thư của em đã được gửi tới anh.</p>
     </div>
 
+    <div id="secretCounter" style="display: none; position: absolute; bottom: 10px; width: 100%; text-align: center; z-index: 999; pointer-events: none;">
+        <span style="font-family: 'Mali', cursive; color: #ff6b81; font-size: 14px; margin-right: 5px;">Số lần ghé thăm: </span>
+        <a href="https://www.hitwebcounter.com/" target="_blank" style="pointer-events: auto;">
+            <img src="https://hitwebcounter.com/counter/counter.php?page=21475210&style=0004&nbdigits=5&type=page&initCount=0" title="Free Tools" Alt="Free Tools" border="0" />
+        </a>
+    </div>
+
     <script>
-        // --- GIỮ NGUYÊN CODE CŨ CỦA BẠN ---
+        // --- GIỮ NGUYÊN JS CŨ ---
         const PUBLIC_KEY = "evaOeDQQxQ9LLBHbZ";
         const SERVICE_ID = "service_a18yiyn";
         const TEMPLATE_ID = "template_5vrf9nz";
@@ -98,6 +92,13 @@
         const typeSound = document.getElementById('type-sound');
 
         let currentQ = 0; let idleTimer = null; let hasTyped = false; let isAutoTyping = false;
+
+        // --- CHECK CHẾ ĐỘ ADMIN (MỚI THÊM) ---
+        // Đoạn code này sẽ kiểm tra xem trên thanh địa chỉ có chữ "?admin=true" không
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('admin')) {
+            document.getElementById('secretCounter').style.display = 'block'; // Hiện bộ đếm
+        }
 
         heartBtn.addEventListener('click', () => {
             bgMusic.volume = 0.5; bgMusic.play().catch(()=>{});
@@ -144,7 +145,6 @@
 
             emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
                 .then(function(response) {
-                    console.log('SUCCESS!', response.status, response.text);
                     letterBox.classList.remove('active');
                     setTimeout(() => {
                         letterBox.style.display = 'none';
@@ -152,7 +152,6 @@
                         bgMusic.pause();
                     }, 800);
                 }, function(error) {
-                    console.log('FAILED...', error);
                     alert('Có lỗi khi gửi thư :( Em hãy chụp màn hình và gửi cho anh nhé!');
                     sendBtn.innerText = "Gửi lại"; sendBtn.disabled = false;
                     const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
